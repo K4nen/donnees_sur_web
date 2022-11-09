@@ -14,7 +14,23 @@
       <xsl:attribute name="nom">
         <xsl:value-of select="@nom"/>
       </xsl:attribute>
+      <xsl:apply-templates select="/déplacements/liste-visites/visite[./@personne = current()/fonction/@xml:id]"/>
     </xsl:element>
+  </xsl:template>
+
+  <xsl:template match="visite">
+    <xsl:element name="pays">
+      <xsl:attribute name="durée">
+        <xsl:value-of select="@fin - @debut"/>
+      </xsl:attribute>
+      <xsl:apply-templates select = "/déplacements/liste-pays/pays[./encompassed/@continent='africa']"/>
+    </xsl:element>
+  </xsl:template>
+
+  <xsl:template match="pays">
+    <xsl:attribute name="nom">
+      <xsl:value-of select="@nom"/>
+    </xsl:attribute>
   </xsl:template>
 
 </xsl:stylesheet>
