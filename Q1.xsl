@@ -18,9 +18,7 @@
     </xsl:element>
   </xsl:template>
 
-  <xsl:template match="visite">
-    <xsl:value-of select="days-from-duration(xs:date(@debut) - xs:date(@fin))"/>
-  </xsl:template>
+
 
   <xsl:template match="pays">
     <xsl:element name="pays">
@@ -30,8 +28,18 @@
       <xsl:attribute name="durée">
         <xsl:apply-templates select="/déplacements/liste-visites/visite[./@pays = current()/fonction/@xml:id]"/>
       </xsl:attribute>
+      <xsl:choose>
+        <xsl:when test="./language[./text()='French'][./@percentage > 30]">
+          <xsl:attribute name="francophone"><xsl:text>En partie</xsl:text></xsl:attribute>
+        </xsl:when>
+        <xsl:when test="./language[./text()='French'][not(./@percentage)]">
+          <xsl:attribute name="francophone"><xsl:text>Officielle</xsl:text></xsl:attribute>
+        </xsl:when>
+      </xsl:choose>
     </xsl:element>
   </xsl:template>
+
+
 
 
 </xsl:stylesheet>
