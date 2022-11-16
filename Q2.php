@@ -30,10 +30,26 @@ while (($p instanceOf DOMELEMENT) && ($p->tagName == 'personne')) {
         $nom = $personne->getAttribute("nom");
         //Ecriture dans le fichier texte
         fwrite($fileopen, "<Président nom=\"" .$nom . "\">"."\n");
-        }
+        $res = affichepays();
+        fwrite($fileopen, $res."\n");
+
+    }
     $p=$p->nextSibling;
 }
+function affichepays($pa){
+    while (($pa instanceOf DOMELEMENT) && ($pa->tagName == 'pays')) {
+        $nom = "";
+        $pays = $pa;
+        $c = $pays->firstChild;
+        $continent = $c->getAttribute("continent");
+        if($continent == 'africa'){
+            $nom .=$pays->getAttribute('name')."\n";
+        }
 
+    }
+return $nom;
+
+}
 
 
 
