@@ -1,74 +1,119 @@
 <?php
-include('Sax4php.php');
+function startElements($parser, $name, $attrs) {
+    global $listePays, $listeVisites, $elements, $pays, $nomPays, $isAfrica, $pourcentage,$isFrench, $isPresident, $listePersonnes, $personne;
 
-class ListePresidents extends DefaultHandler {
-    private $texte;
-
-    function __construct($a) {
-        parent::__construct(); $this->age = $a;
-    }
-
-    function startDocument() {
-        echo "<?xml version='1.0' encoding='UTF-8' ?>\n"; //<?php
-        echo "<!DOCTYPE liste-presidents SYSTEM 'liste-presidents.dtd'>\n";
-        echo "<liste-presidents>\n";
-    }
-
-    function endDocument() {
-        echo "</liste-presidents>\n";
-    }
-
-    function characters($txt) {
-        $txt = trim($txt);
-        if (!(empty($txt))) $this->texte .= $txt;
-    }
-
-    function startElement($nom, $att)
-    {
-        if (!empty($nom)) {
-            switch ($nom) {
-                case 'liste-pays' :
-                    $lpays = [];
-                case 'pays' :
-                    //var_dump($att);
-                    if (!empty($att["nomP"])) {
-                        $pa = ["nomP" => $att["nom"], "id" => $att["xml:id"], "francophone" => null];
-                        array_push($lpays, $pa);
-                        foreach ($lpays as $p) {
-                            var_dump($p);
-                            //echo $p["nomP"];
-                            //echo $p["nomP"]."</br>";
-                            /*
-                            echo $p["id"]."</br>";
-                            */
-                        }
-                    }
-                //echo $att["nom"]."</br>";
-                /*
-                case 'encompassed' :
-                    if ($att["continent"] == "africa")
-                    {
-                    }
-                    ;
-    */
-                default;
-
+    if(!empty($name)) {
+        if ($name == 'LISTE-PAYS') {
+            $listePays []= array();
+        }
+        if($name == 'PAYS') {
+            $isFrench = false;
+            $isAfrica = false;
+            $pays = ['NOM' => $attrs['NOM'], 'ID' => $attrs['XML:ID'], 'FRANCOPHONE' => null];
+        }
+        if($name == 'ENCOMPASSED') {
+            if($attrs['CONTINENT'] == 'africa') {
+                $isAfrica = true;
             }
         }
-    }
+        if($name == 'LANGUAGE' && $isAfrica) {
+            if(isset($attrs['PERCENTAGE'])) {
+                $pourcentage = $attrs['PERCENTAGE'];
+            }else{
+                $pourcentage = null;
+            }
+        }
+        if($name == 'LISTE-VISITES') {
+            $listeVisites []= array();
+        }
+        if($name == 'VISITE') {
+            if(in_array($attrs['PAYS'], array_column($listePays, 'NOM'))) {
+                array_push($listeVisites, ['DEBUT' => $attrs['DEBUT'], 'FIN' => $attrs['FIN'], 'PERSONNE' => $attrs['PERSONNE'], 'PAYS' => $attrs['PAYS']]);
+            }
+        }
+        if($name == 'LISTE-PERSONNES') {
+            $listePersonnes []= array();
+        }
+        if($name == 'PERSONNE') {
+            $isPresident = false;
+            $personne = ['NOMP'=> $attrs['NOM'], 'IDP' => $attrs['XML:ID']];
 
-    function endElement($nom) {
-        switch($nom) {
-            case 'titre' : if ($this->ok) echo " titre='$this->texte'/>\n"; break;
-            default :;
+        }
+        if($name == 'FONCTION') {
+            if($attrs['TYPE'] == 'Président de la République') {
+                $isPresident = true;
+            }
+        }
+
+        $elements = $name;
+    }
+}
+
+function characterData($parser, $data) {
+    global $listePays, $listeVisites, $elements, $pays, $isAfrica, $pays, $pourcentage, $isFrench, $isPresident, $listePersonnes, $personne;
+
+    if(!empty($data)) {
+        if ($elements == 'LANGUAGE' && $isAfrica) {
+            if($data == 'French') {
+                $isFrench = true;
+                if($pourcentage == null) {
+                    $pays['FRANCOPHONE'] = "Officiel";
+                }else if($pourcentage > 30) {
+                    $pays['FRANCOPHONE'] = "En partie";
+                }
+                array_push($listePays, $pays);
+            }
         }
     }
 }
 
-try {
-    $sax = new SaxParser( new ListePresidents(9) );
-    $sax->parse('tp.xml');
-} catch(SAXException $e){ echo "\n",$e;
-} catch(Exception $e) { echo "Capture de l'exception par défaut\n", $e;
-}?>
 
+function endElements($parser, $name) {
+    global $listePays, $elements, $pays, $isAfrica, $pays, $pourcentage, $isFrench, $isPresident, $listePersonnes, $personne;
+
+    if(!empty($name)) {
+        if($name == 'PAYS') {
+            if(!$isFrench && $isAfrica) {
+                array_push($listePays, $pays);
+            }
+        }
+        if($name == 'FONCTION') {
+            if($isPresident) {
+                array_push($listePersonnes,$personne);
+            }
+        }
+    }
+}
+
+
+$parser = xml_parser_create();
+
+xml_set_element_handler($parser, "startElements", "endElements");
+xml_set_character_data_handler($parser, "characterData");
+
+if (!($handle = fopen('tp.xml', "r"))) {
+    die("could not open XML input");
+}
+
+while($data = fread($handle, 4096)) {
+    xml_parse($parser, $data);
+}
+
+foreach($listePays as $oPays) {
+    var_dump($oPays);
+    echo "<br/>";
+}
+foreach($listeVisites as $oVisite) {
+    var_dump($oVisite);
+    echo "<br/>";
+}
+
+foreach($listePersonnes as $oPersonne) {
+    var_dump($oPersonne);
+    echo "<br/>";
+}
+
+xml_parser_free($parser); // deletes the parser
+
+
+?>
