@@ -7,14 +7,13 @@ $fileopen=(fopen($file,'a'));
 ftruncate($fileopen, 0);
 
 $doc = new DOMDocument();
-$doc->preserveWhiteSpace = false;
-$doc->validateOnParse  = true;
+
 $doc->load("tp.xml");
 
-
-$p = $doc->documentElement->lastChild->firstChild;
 $pa = $doc->documentElement->firstChild->firstChild;
+$p = $doc->documentElement->lastChild->firstChild;
 
+echo $pa;
 //Génération du résultat
 fwrite($fileopen, "<?xml version='1.0' encoding='UTF-8' ?>\n");
 fwrite($fileopen, "<!DOCTYPE deplacement SYSTEM 'tp.dtd'>\n");
@@ -29,16 +28,29 @@ while (($p instanceOf DOMELEMENT) && ($p->tagName == 'personne')) {
     if ($fonction == "Président de la République") {
         $nom = $personne->getAttribute("nom");
         //Ecriture dans le fichier texte
-        fwrite($fileopen, "<Président nom=\"" .$nom . "\">"."\n");
-        $res = affichepays();
-        fwrite($fileopen, $res."\n");
+        fwrite($fileopen, "<president nom=\"" .$nom . "\">"."\n");
+        $nomP = "test";
+        $continent = "";
+
+        while (($pa instanceOf DOMELEMENT) && ($pa->tagName == 'pays')) {
+            $nomP = "oui";
+            $pays = $pa;
+            $c = $pays->firstChild;
+            $continent = $c->getAttribute("continent");
+            if($continent == 'africa'){
+                $nomP .=$pays->getAttribute('name')."\n";
+            }
+
+        }
+        fwrite($fileopen, $nomP."\n");
 
     }
     $p=$p->nextSibling;
 }
 function affichepays($pa){
+    $nom = "";
+    $continent = "";
     while (($pa instanceOf DOMELEMENT) && ($pa->tagName == 'pays')) {
-        $nom = "";
         $pays = $pa;
         $c = $pays->firstChild;
         $continent = $c->getAttribute("continent");
@@ -47,7 +59,7 @@ function affichepays($pa){
         }
 
     }
-return $nom;
+return $continent;
 
 }
 
