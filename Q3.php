@@ -99,17 +99,20 @@ while($data = fread($handle, 4096)) {
     xml_parse($parser, $data);
 }
 
-foreach($listePays as $oPays) {
-    var_dump($oPays);
+foreach($listePays as $tPays) {
+    //var_dump($tPays);
+    echo $tPays['NOM'];
     echo "<br/>";
 }
-foreach($listeVisites as $oVisite) {
-    var_dump($oVisite);
+foreach($listeVisites as $tVisite) {
+    //var_dump($tVisite);
+    echo $tVisite['PERSONNE'];
+    echo $tVisite['PAYS'];
     echo "<br/>";
 }
 
-foreach($listePersonnes as $oPersonne) {
-    var_dump($oPersonne);
+foreach($listePersonnes as $tPersonne) {
+    var_dump($tPersonne);
     echo "<br/>";
 }
 
