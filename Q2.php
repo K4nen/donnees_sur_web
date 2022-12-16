@@ -1,78 +1,123 @@
-<?php header('Content-type: text/xml; Encoding: utf-8');
-ini_set("memory_limit", -1);
-//Chemin vers le fichier texte
+<?php
+
 $file = "finQ2.xml";
-//Ouverture en mode écriture
 $fileopen=(fopen($file,'a'));
 ftruncate($fileopen, 0);
-
-$doc = new DOMDocument();
+$doc = new DomDocument();
+$doc->validateOnParse = true;
 $doc->preserveWhiteSpace = false;
-$doc->validateOnParse  = true;
 $doc->load("tp.xml");
+
 $xpath = new DOMXPath($doc);
+$res = new DOMDocument('1.0', 'utf-8');
+$res->formatOutput = true;
+
+
 foreach ($xpath->query('//comment()') as $comment) {
     $comment->parentNode->removeChild($comment);
 }
 
 
-$p = $doc->documentElement->lastChild->firstChild;
-$pa = $doc->documentElement->firstChild->firstChild;
+$racine = $doc->documentElement;
+//$element = $racine->firstChild->firstChild;
+$pays = $doc->documentElement->firstChild->firstChild;
+$personnes = $doc->documentElement->lastChild->firstChild;
+$visites = $doc->documentElement->firstChild->nextSibling->firstChild;
+$listeP = $doc->documentElement->firstChild;
+$listeVisites = [];
+$listePays = [];
+$listePersonnes = [];
 
-//Génération du résultat
-fwrite($fileopen, "<?xml version='1.0' encoding='UTF-8' ?>\n");
-fwrite($fileopen, "<!DOCTYPE deplacement SYSTEM 'tp.dtd'>\n");
-fwrite($fileopen, "<liste-présidents>\n");
+while (($personnes instanceOf DOMELEMENT) && ($personnes->tagName == 'personne')) {
+    if ($personnes->tagName == 'personne') {
+        $personne = $personnes->firstChild;
+        if ($personne->getAttribute('type') == 'Président de la République') {
+            array_push($listePersonnes, ['Nom' => $personnes->getAttribute('nom'), 'Id' => $personne->getAttribute('xml:id')]);
+        }
+    }
+    $personnes = $personnes->nextSibling;
+}
 
-$president = array();
-$listpays = array();
+while (($pays instanceOf DOMELEMENT) && ($pays->tagName == 'pays')) {
+    $afrique =  false;
+    $francais = false;
 
-while (($p instanceOf DOMELEMENT) && ($p->tagName == 'personne')) {
-    $personne = $p;
-    $f = $personne->firstChild;
-    $fonction = $f->getAttribute("type");
-    if ($fonction == "Président de la République") {
-        $nom = $personne->getAttribute("nom");
-        //Ecriture dans le fichier texte
-        /*
+    $francophone = "";
+    $continent = $pays->firstChild;
+    while (isset($continent->nodeName)) {
+        if ($continent->getAttribute('continent') == 'africa') {
+            $afrique = true;
+        } elseif ($continent->tagName == 'language') {
+            if ($continent->hasAttribute('percentage') && $continent->textContent == 'French') {
+                $francais = true;
+
+                if ($continent->getAttribute('percentage') >= 30) {
+                    $francophone = "En-partie";
+                }
+
+            } elseif (!$continent->hasAttribute('percentage') && $continent->textContent == 'French') {
+                $francophone = "Officiel";
+                $francais = true;
+            }
+        }
+        $continent = $continent->nextSibling;
+    }
+    if ($afrique) {
+        array_push($listePays, ['Nom' => $pays->getAttribute('nom'), 'Id' => $pays->getAttribute('xml:id'), 'Francophone' => $francophone]);
+    }
+    $pays = $pays->nextSibling;
+}
 
 
-        $res = affichepays($pa);
-        foreach($res as $c){
-            fwrite($fileopen, $c."\n");
+
+while (($visites instanceOf DOMELEMENT) && ($visites->tagName == 'visite')) {
+    // if (in_array($visites->getAttribute('pays'), array_column($listePays, 'Id')) && in_array($visites->getAttribute('personne'), array_column($listePersonnes, 'Id'))) {
+    if (in_array($visites->getAttribute('personne'), array_column($listePersonnes, 'Id')) && in_array($visites->getAttribute('pays'), array_column($listePays, 'Id'))) {
+
+        array_push($listeVisites, ['Debut' => $visites->getAttribute('debut'), 'Fin' => $visites->getAttribute('fin'), 'Personne' => $visites->getAttribute('personne'), 'Pays' => $visites->getAttribute('pays')]);
+    }
+
+    $visites = $visites->nextSibling;
+}
+
+$racine = $res->createElement('liste-presidents');
+$res->appendChild($racine);
+
+foreach ($listePersonnes as $p) {
+    $president_res = $res->createElement('president');
+    $racine->appendChild($president_res);
+    $president_res->setAttribute('nom', $p["Nom"]);
+    foreach ($listePays as $pa) {
+        $duree = 0;
+        foreach ($listeVisites as $visite) {
+            if (($visite['Pays'] == $pa['Id']) && ($visite['Personne'] == $p['Id'])) {
+                $debut = strtotime($visite['Debut']);
+                $fin = strtotime($visite['Fin']);
+                $difference = $fin - $debut;
+                $duree += 1 + round($difference / 86400);
+            }
+        }
+        if ($duree == 0) {
+            $temps = "0";
+        } else {
+            $temps ="P".$duree."D";
+        }
+        if ($pa['Francophone'] != null) {
+            $fr = $pa['Francophone'];
+        } else {
+            $fr = "";
         }
 
-        */
-        array_push($president,$nom);
+        $pays_res = $res->createElement('pays');
+        $president_res->appendChild($pays_res);
+        $pays_res->setAttribute('nom', $pa["Nom"]);
+        if(!($fr == "")){
+            $pays_res->setAttribute('francophone',$fr);
+        }
+        $pays_res->setAttribute('duree',$temps);
+
     }
-    $p=$p->nextSibling;
 }
-while (($pa instanceOf DOMELEMENT) && ($pa->tagName == 'pays')) {
-    $nomP="";
-    $pays = $pa;
-    $c = $pays->firstChild;
-    if (!is_null($c)) {
-        $continent = $c->getAttribute("continent");
-    }
-    if($continent == 'africa'){
-        $nomP .=$pays->getAttribute('nom');
-        array_push($listpays,$nomP);
-        var_dump($listpays);
+fwrite($fileopen,$res->saveXML());
 
-    }
-    $pa=$pa->nextSibling;
-
-}
-foreach($president as $pre){
-    fwrite($fileopen, "<president nom=\"" .$pre . "\">"."\n");
-    foreach($listpays as $lp){
-        fwrite($fileopen,"   <pays nom=\"".$lp."\" durée=\"0\"/>"."\n");
-    }
-    fwrite($fileopen, "</president>"."\n");
-}
-
-
-fwrite($fileopen, "</liste-présidents>\n");
-//On ferme le fichier
 fclose($fileopen);
-?>
