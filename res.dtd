@@ -9,5 +9,5 @@
 <!ELEMENT pays EMPTY>
 <!ATTLIST pays
   durée NMTOKEN #REQUIRED
-  francophone (En-partie|Officiel) #IMPLIED
+  franchophone (En-partie|Officiel) #IMPLIED
   nom CDATA #REQUIRED>

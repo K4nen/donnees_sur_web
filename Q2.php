@@ -14,23 +14,39 @@ $implementation = new DOMImplementation();
 $res->appendChild($implementation->createDocumentType('liste-présidents SYSTEM \'res.dtd\''));
 $res->formatOutput = true;
 
-
+/*
 foreach ($xpath->query('//comment()') as $comment) {
     $comment->parentNode->removeChild($comment);
 }
-
-
+*/
 $racine = $doc->documentElement;
+
+
+
+
+$elements = $racine->firstChild;
+
 //$element = $racine->firstChild->firstChild;
-$pays = $doc->documentElement->firstChild->firstChild;
-$personnes = $doc->documentElement->lastChild->firstChild;
-$visites = $doc->documentElement->firstChild->nextSibling->firstChild;
+
+
+
+while(isset($elements->nodeName)) {
+    if($elements->nodeName == 'liste-personnes') {
+        $personnes = $elements->firstChild;
+    }elseif($elements->nodeName == 'liste-pays') {
+        $pays = $elements->firstChild;
+    }elseif($elements->nodeName == 'liste-visites') {
+        $visites = $elements->firstChild;
+    }
+    $elements = $elements->nextSibling;
+}
+
 $listeP = $doc->documentElement->firstChild;
 $listeVisites = [];
 $listePays = [];
 $listePersonnes = [];
 
-while (($personnes instanceOf DOMELEMENT) && ($personnes->tagName == 'personne')) {
+while (isset ($personnes->nodeName)) {
     if ($personnes->tagName == 'personne') {
         $personne = $personnes->firstChild;
         if ($personne->getAttribute('type') == 'Président de la République') {
@@ -39,17 +55,17 @@ while (($personnes instanceOf DOMELEMENT) && ($personnes->tagName == 'personne')
     }
     $personnes = $personnes->nextSibling;
 }
-
-while (($pays instanceOf DOMELEMENT) && ($pays->tagName == 'pays')) {
+while (isset($pays->nodeName)) {
     $afrique =  false;
     $francais = false;
 
     $francophone = "";
     $continent = $pays->firstChild;
+
     while (isset($continent->nodeName)) {
-        if ($continent->getAttribute('continent') == 'africa') {
+        if ($continent->nodeName == 'encompassed' && $continent->getAttribute('continent') == 'africa') {
             $afrique = true;
-        } elseif ($continent->tagName == 'language') {
+        } elseif ($continent->nodeName == 'language') {
             if ($continent->hasAttribute('percentage') && $continent->textContent == 'French') {
                 $francais = true;
 
@@ -71,8 +87,7 @@ while (($pays instanceOf DOMELEMENT) && ($pays->tagName == 'pays')) {
 }
 
 
-
-while (($visites instanceOf DOMELEMENT) && ($visites->tagName == 'visite')) {
+while (isset($visites->nodeName)) {
     // if (in_array($visites->getAttribute('pays'), array_column($listePays, 'Id')) && in_array($visites->getAttribute('personne'), array_column($listePersonnes, 'Id'))) {
     if (in_array($visites->getAttribute('personne'), array_column($listePersonnes, 'Id')) && in_array($visites->getAttribute('pays'), array_column($listePays, 'Id'))) {
 
@@ -114,7 +129,7 @@ foreach ($listePersonnes as $p) {
         $president_res->appendChild($pays_res);
         $pays_res->setAttribute('nom', $pa["Nom"]);
         if(!($fr == "")){
-            $pays_res->setAttribute('francophone',$fr);
+            $pays_res->setAttribute('franchophone',$fr);
         }
         $pays_res->setAttribute('durée',$temps);
 
