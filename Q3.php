@@ -10,8 +10,8 @@ ftruncate($fileopen, 0);
 //En-tête pour le document XLM, ouverture de la première balise "liste-présidents"
 function startDocument($fileopen) {
     fwrite($fileopen,"<?xml version='1.0' encoding='UTF-8' ?>\n");
-    fwrite($fileopen, "<!DOCTYPE liste-présidents SYSTEM 'tp.dtd'> \n");
-    fwrite($fileopen, "<liste-presidents>\n");
+    fwrite($fileopen, "<!DOCTYPE liste-présidents SYSTEM 'res.dtd'> \n");
+    fwrite($fileopen, "<liste-présidents>\n");
 }
 
 
