@@ -47,9 +47,9 @@ function endDocument($fileopen) {
             }
             //affichage de la balise durée avec la durée entre le "P" et le "D"
             if($duree == 0) {
-                $temps = "duree=\"0\"";
+                $temps = "durée=\"0\"";
             }else{
-                $temps = "duree='P".$duree."D'";
+                $temps = "durée='P".$duree."D'";
             }
             //affichage de la balise nom du pays
             fwrite($fileopen,"\t\t<pays nom=\"".$unPays['NOMPAYS']."\" $temps$francophone/>\n");
@@ -58,7 +58,7 @@ function endDocument($fileopen) {
         fwrite($fileopen,"\t</président>\n");
     }
     //fermeture de la balise xml "liste-présidents"
-    fwrite($fileopen,"</liste-presidents>");
+    fwrite($fileopen,"</liste-présidents>");
 }
 //fonction qui permet de gérer et lire les noeuds texte
 function characters($parser, $txt) {
