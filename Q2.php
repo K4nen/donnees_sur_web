@@ -10,6 +10,8 @@ $doc->load("tp.xml");
 
 $xpath = new DOMXPath($doc);
 $res = new DOMDocument('1.0', 'utf-8');
+$implementation = new DOMImplementation();
+$res->appendChild($implementation->createDocumentType('liste-présidents SYSTEM \'res.dtd\''));
 $res->formatOutput = true;
 
 
@@ -80,11 +82,11 @@ while (($visites instanceOf DOMELEMENT) && ($visites->tagName == 'visite')) {
     $visites = $visites->nextSibling;
 }
 
-$racine = $res->createElement('liste-presidents');
+$racine = $res->createElement('liste-présidents');
 $res->appendChild($racine);
 
 foreach ($listePersonnes as $p) {
-    $president_res = $res->createElement('president');
+    $president_res = $res->createElement('président');
     $racine->appendChild($president_res);
     $president_res->setAttribute('nom', $p["Nom"]);
     foreach ($listePays as $pa) {
@@ -114,7 +116,7 @@ foreach ($listePersonnes as $p) {
         if(!($fr == "")){
             $pays_res->setAttribute('francophone',$fr);
         }
-        $pays_res->setAttribute('duree',$temps);
+        $pays_res->setAttribute('durée',$temps);
 
     }
 }
