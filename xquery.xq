@@ -24,10 +24,18 @@ declare function local:est-francophone($pays as element(pays), $duree) as elemen
 if ($pays/language[./text() eq 'French'])
     then if ($pays/language[./text() eq 'French'][./@percentage])
          then if (xs:float($pays/language[./text() eq 'French']/@percentage) gt 30)
-              then <pays nom='{$pays/@nom}' franchophone='En-partie' durée='{$duree}'/>
-              else <pays nom='{$pays/@nom}' durée='{$duree}'/>
-         else <pays nom='{$pays/@nom}' franchophone='Officiel' durée='{$duree}'/>
-    else <pays nom='{$pays/@nom}' durée='{$duree}'/>
+              then if ($duree eq 0)
+                   then  <pays nom='{$pays/@nom}' franchophone='En-partie' durée='{$duree}'/>
+                   else <pays nom='{$pays/@nom}' franchophone='En-partie' durée='P{$duree}D'/>
+              else if ($duree eq 0)
+                    then <pays nom='{$pays/@nom}' durée='{$duree}'/>
+                    else <pays nom='{$pays/@nom}' durée='P{$duree}D'/>
+         else if($duree eq 0)
+                then <pays nom='{$pays/@nom}' franchophone='Officiel' durée='{$duree}'/>
+                else <pays nom='{$pays/@nom}' franchophone='Officiel' durée='P{$duree}D'/>
+    else    if ($duree eq 0)
+            then <pays nom='{$pays/@nom}' durée='{$duree}'/>
+            else <pays nom='{$pays/@nom}' durée='P{$duree}D'/>
 };
 
 <liste-présidents> 
