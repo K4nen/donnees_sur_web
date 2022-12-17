@@ -30,14 +30,21 @@
         <xsl:value-of select="@nom"/>
       </xsl:attribute>
       <xsl:attribute name="durée">
-        <xsl:value-of select="sum(/déplacements/liste-visites/visite[./@personne = $nom and ./@pays = current()/@xml:id]/fn:days-from-duration(xs:date(./@fin) - xs:date(./@debut)))+count(/déplacements/liste-visites/visite[./@personne = $nom and ./@pays = current()/@xml:id])"/>
+        <xsl:choose>
+          <xsl:when test="sum(/déplacements/liste-visites/visite[./@personne = $nom and ./@pays = current()/@xml:id]/fn:days-from-duration(xs:date(./@fin) - xs:date(./@debut)))+count(/déplacements/liste-visites/visite[./@personne = $nom and ./@pays = current()/@xml:id]) >0">
+            <xsl:value-of select="concat('P', sum(/déplacements/liste-visites/visite[./@personne = $nom and ./@pays = current()/@xml:id]/fn:days-from-duration(xs:date(./@fin) - xs:date(./@debut)))+count(/déplacements/liste-visites/visite[./@personne = $nom and ./@pays = current()/@xml:id]),'D')"/>
+          </xsl:when>
+          <xsl:when test="sum(/déplacements/liste-visites/visite[./@personne = $nom and ./@pays = current()/@xml:id]/fn:days-from-duration(xs:date(./@fin) - xs:date(./@debut)))+count(/déplacements/liste-visites/visite[./@personne = $nom and ./@pays = current()/@xml:id]) = 0">
+            <xsl:value-of select="sum(/déplacements/liste-visites/visite[./@personne = $nom and ./@pays = current()/@xml:id]/fn:days-from-duration(xs:date(./@fin) - xs:date(./@debut)))+count(/déplacements/liste-visites/visite[./@personne = $nom and ./@pays = current()/@xml:id])"/>
+          </xsl:when>
+        </xsl:choose>
       </xsl:attribute>
       <xsl:choose>
         <xsl:when test="./language[./text()='French'][./@percentage > 30]">
-          <xsl:attribute name="francophone"><xsl:text>En partie</xsl:text></xsl:attribute>
+          <xsl:attribute name="franchophone"><xsl:text>En-partie</xsl:text></xsl:attribute>
         </xsl:when>
         <xsl:when test="./language[./text()='French'][not(./@percentage)]">
-          <xsl:attribute name="francophone"><xsl:text>Officielle</xsl:text></xsl:attribute>
+          <xsl:attribute name="franchophone"><xsl:text>Officiel</xsl:text></xsl:attribute>
         </xsl:when>
       </xsl:choose>
     </xsl:element>

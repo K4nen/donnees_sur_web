@@ -1,7 +1,7 @@
 <?php header('Content-type: text/xml; Encoding: utf-8');
 
 //Chemin vers le fichier texte
-$file = "finQ3.xml";
+$file = "xml/SAX.xml";
 //Ouverture en mode écriture
 $fileopen=(fopen($file,'a'));
 ftruncate($fileopen, 0);
